@@ -1,0 +1,31 @@
+password_login_student_drive_url ="https://raw.githubusercontent.com/Aissaouileith31/school_data3/refs/heads/main/studentdata.json"
+
+def check_login(username,password):
+    try:
+        response = requests.get(password_login_student_drive_url , timeout=1)
+        if response.status_code != 200:
+            print("⚠️ Could not fetch data from Drive")
+            return False
+        data = json.loads(response.text)
+    except Exception as e:
+        print("❌ Error fetching data:", e)
+        return False
+
+    for s in data.get("students", []):
+        if s["name"].lower() == username.lower():
+            hashed = s["password_hash"].encode()
+            return bcrypt.checkpw(password.encode(), hashed)
+    return False
+
+
+
+def log_in(e):
+        user = username_field.value
+        pas = password_field.value
+
+        if not user or not pas:
+            print('no user or password was put')
+        elif check_login(user,pas):
+            print('log in succes')
+        else:
+            print('no')
