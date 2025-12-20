@@ -29,12 +29,60 @@ def home(page: ft.Page):
 # Change these lines in your code:
     messages_list = ft.Column(spacing=10, scroll=ft.ScrollMode.ADAPTIVE, expand=True)
     crenau_list = ft.Column(spacing=10, scroll=ft.ScrollMode.ADAPTIVE, expand=True)
+    # --- DRAWER BUTTON FUNCTIONS ---
+    def handle_drawer_change(e):
+        index = e.control.selected_index
+        if index == 2: # Help Button (Show a popup)
+            page.open(ft.AlertDialog(title=ft.Text("Besoin d'aide?"), content=ft.Text("Contactez l'administration au: 0555-XXX-XXX")))
+        elif index == 3: # Website Button
+            page.launch_url("https://votre-ecole.com")
+        elif index == 4: # Map Button
+            # This opens the school location on Google Maps
+            page.launch_url("https://www.google.com/maps/search/?api=1&query=35.1234, -1.2345")
+        
+        page.update()
+
+    page.drawer = ft.NavigationDrawer(
+        on_change=handle_drawer_change,
+        controls=[
+            ft.Container(height=12),
+            ft.Text("  Menu Scolaire", size=20, weight="bold"),
+            ft.Divider(),
+            
+
+            # Index 1
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.TRANSLATE,
+                label="Changer la Langue",
+            ),
+            ft.Divider(),
+            # Index 2
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.HELP_OUTLINE,
+                label="Aide & Support",
+            ),
+            # Index 3
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.LANGUAGE,
+                label="Site Web de l'école",
+            ),
+            # Index 4
+            ft.NavigationDrawerDestination(
+                icon=ft.Icons.MAP_OUTLINED,
+                label="Localisation (Maps)",
+            ),
+        ],
+    )
+    def open_sidebar(e):
+        page.drawer.open = True
+        page.update()
+    
     def send_system_notify(title, msg):
         try:
             notification.notify(
                 title=title,
                 message=msg,
-                app_name="Archemede",
+                app_name="Archemede school",
                 ticker="Nouveau message de l'école !", # Text that crawls across the top
                 timeout=10
             )
@@ -79,7 +127,7 @@ def home(page: ft.Page):
 
                     crenau_list.controls.append(
                         ft.Container(
-                            content=ft.ListTile(title=ft.Text(f'crenau: {item['matier']} inscri le {item['date_de_iscription']}'), subtitle=ft.Text(f'jour du crenau: {item['jour']}\ntemp:\n  debu: {item['debu']}\n  fin: {item['fin']}')),
+                            content=ft.ListTile(title=ft.Text(f'crenau: {item['matier']} inscri le {item['date_de_iscription']}'), subtitle=ft.Text(f'jour du crenau: {item['jour']}\ntemp:\n  debu: {item['debu']}\n  fin: {item['fin']}\nnbr de cour rest: {item['nbr_cour']}\nexpire: {item['expire']}')),
                             bgcolor="white10", border_radius=10
                         )
                     )
@@ -125,7 +173,24 @@ def home(page: ft.Page):
     # 1. User Info Tab (Profile Card)
     user_tab = ft.Container(
         content=ft.Column([
-            ft.Text("Mon Profile", size=28, weight="bold"),
+            ft.Row([
+                # 1. The Menu Button
+                ft.IconButton(
+                    icon=ft.Icons.MENU, 
+                    icon_color=PRIMARY, 
+                    on_click=open_sidebar,
+                ),
+                # 2. Centered Text (using expand=True and textAlign="center")
+                ft.Text(
+                    "Mon Profile", 
+                    size=28, 
+                    weight="bold", 
+                    expand=True, 
+                    text_align=ft.TextAlign.CENTER
+                ),
+                # 3. Empty spacer to push text to the middle
+                ft.Container(width=40) 
+            ], alignment=ft.MainAxisAlignment.CENTER),
             ft.Container(
                 content=ft.Column([
                     ft.CircleAvatar(content=ft.Icon(ft.Icons.PERSON, size=40), radius=40, bgcolor=PRIMARY),
