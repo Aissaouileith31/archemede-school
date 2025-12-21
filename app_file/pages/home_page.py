@@ -19,6 +19,7 @@ def home(page: ft.Page):
     page.window.height = 700
     page.theme_mode = ft.ThemeMode.DARK
     page.bgcolor = "#0F172A"
+    page.padding = ft.padding.only(top=20)
     
     PRIMARY = "#6366F1"
     def logout(e):
@@ -30,52 +31,6 @@ def home(page: ft.Page):
     messages_list = ft.Column(spacing=10, scroll=ft.ScrollMode.ADAPTIVE, expand=True)
     crenau_list = ft.Column(spacing=10, scroll=ft.ScrollMode.ADAPTIVE, expand=True)
     # --- DRAWER BUTTON FUNCTIONS ---
-    def handle_drawer_change(e):
-        index = e.control.selected_index
-        if index == 2: # Help Button (Show a popup)
-            page.open(ft.AlertDialog(title=ft.Text("Besoin d'aide?"), content=ft.Text("Contactez l'administration au: 0555-XXX-XXX")))
-        elif index == 3: # Website Button
-            page.launch_url("https://votre-ecole.com")
-        elif index == 4: # Map Button
-            # This opens the school location on Google Maps
-            page.launch_url("https://www.google.com/maps/search/?api=1&query=35.1234, -1.2345")
-        
-        page.update()
-
-    page.drawer = ft.NavigationDrawer(
-        on_change=handle_drawer_change,
-        controls=[
-            ft.Container(height=12),
-            ft.Text("  Menu Scolaire", size=20, weight="bold"),
-            ft.Divider(),
-            
-
-            # Index 1
-            ft.NavigationDrawerDestination(
-                icon=ft.Icons.TRANSLATE,
-                label="Changer la Langue",
-            ),
-            ft.Divider(),
-            # Index 2
-            ft.NavigationDrawerDestination(
-                icon=ft.Icons.HELP_OUTLINE,
-                label="Aide & Support",
-            ),
-            # Index 3
-            ft.NavigationDrawerDestination(
-                icon=ft.Icons.LANGUAGE,
-                label="Site Web de l'école",
-            ),
-            # Index 4
-            ft.NavigationDrawerDestination(
-                icon=ft.Icons.MAP_OUTLINED,
-                label="Localisation (Maps)",
-            ),
-        ],
-    )
-    def open_sidebar(e):
-        page.drawer.open = True
-        page.update()
     
     def send_system_notify(title, msg):
         try:
@@ -112,7 +67,7 @@ def home(page: ft.Page):
             for item in reversed(msg_res):
                 # EDIT: Check if the receiver matches the logged-in user
                 # We check "receiver" or "resiver_user" based on your JSON keys
-                if item.get("receiver") == user_name:
+                if item.get("receiver") == user_name or item.get("receiver") == "all":
                     messages_list.controls.append(
                         ft.Container(
                             content=ft.ListTile(title=ft.Text(f'adminsrateur le: {item["date"]}'), subtitle=ft.Text(f'type: {item['type_de_message']}\n{item['message']}')),
@@ -173,24 +128,13 @@ def home(page: ft.Page):
     # 1. User Info Tab (Profile Card)
     user_tab = ft.Container(
         content=ft.Column([
-            ft.Row([
-                # 1. The Menu Button
-                ft.IconButton(
-                    icon=ft.Icons.MENU, 
-                    icon_color=PRIMARY, 
-                    on_click=open_sidebar,
-                ),
                 # 2. Centered Text (using expand=True and textAlign="center")
                 ft.Text(
                     "Mon Profile", 
                     size=28, 
                     weight="bold", 
-                    expand=True, 
                     text_align=ft.TextAlign.CENTER
                 ),
-                # 3. Empty spacer to push text to the middle
-                ft.Container(width=40) 
-            ], alignment=ft.MainAxisAlignment.CENTER),
             ft.Container(
                 content=ft.Column([
                     ft.CircleAvatar(content=ft.Icon(ft.Icons.PERSON, size=40), radius=40, bgcolor=PRIMARY),
@@ -211,7 +155,6 @@ def home(page: ft.Page):
                 alignment=ft.alignment.center,
                 border=ft.Border(ft.BorderSide(1, "white10"))
             ),
-            ft.ElevatedButton("deconecter", color="red400", icon=ft.Icons.LOGOUT,on_click=logout)
         ], horizontal_alignment="center", spacing=20),
         padding=20
     )
@@ -234,11 +177,53 @@ def home(page: ft.Page):
         ]), padding=20
     )
 
+    # --- TAB 4: More / Settings ---
+    more_tab = ft.Container(
+        expand=True,
+        content=ft.Column([
+            ft.Text("Plus d'options", size=28, weight="bold"),
+            ft.Divider(height=20, color="transparent"),
+            
+            # Re-creating the drawer items as clickable ListTiles
+            ft.ListTile(
+                leading=ft.Icon(ft.Icons.TRANSLATE, color=PRIMARY),
+                title=ft.Text("Changer la Langue"),
+                on_click=lambda _: print("Language Clicked")
+            ),
+            ft.ListTile(
+                leading=ft.Icon(ft.Icons.HELP_OUTLINE, color=PRIMARY),
+                title=ft.Text("Aide & Support"),
+                on_click=lambda _: page.open(ft.AlertDialog(title=ft.Text("Aide"), content=ft.Text("vieur contacter l'administratur")))
+            ),
+            ft.ListTile(
+                leading=ft.Icon(ft.Icons.LANGUAGE, color=PRIMARY),
+                title=ft.Text("Site Web de l'école"),
+                on_click=lambda _: print('web')
+            ),
+            ft.ListTile(
+                leading=ft.Icon(ft.Icons.MAP_OUTLINED, color=PRIMARY),
+                title=ft.Text("Localisation (Maps)"),
+                on_click=lambda _: page.launch_url("https://maps.app.goo.gl/8qi3t7moUGHb1ThQ6")
+            ),
+            ft.Divider(height=30),
+            ft.ElevatedButton(
+                "Déconnecter", 
+                color="red400", 
+                icon=ft.Icons.LOGOUT, 
+                on_click=logout,
+                width=200
+            )
+        ], horizontal_alignment="center", spacing=10),
+        padding=20
+    )
+
+
     # --- MAIN TABS ---
     tabs = ft.Tabs(
-        selected_index=0,
+        selected_index=1,
         animation_duration=300,
         tabs=[
+            ft.Tab(text="Menu", icon=ft.Icons.MENU, content=more_tab),
             ft.Tab(text="Profile", icon=ft.Icons.PERSON_ROUNDED, content=user_tab),
             ft.Tab(text="Messages", icon=ft.Icons.EMAIL_ROUNDED, content=msg_tab),
             ft.Tab(text="Crenau", icon=ft.Icons.CALENDAR_MONTH_ROUNDED, content=crenau_tab),
