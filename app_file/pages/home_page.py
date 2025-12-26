@@ -33,6 +33,11 @@ def home(page: ft.Page):
     messages_list = ft.Column(spacing=10, scroll=ft.ScrollMode.ADAPTIVE, expand=True)
     crenau_list = ft.Column(spacing=10, scroll=ft.ScrollMode.ADAPTIVE, expand=True)
 
+    def request_notification_permission():
+        if page.platform == ft.PagePlatform.ANDROID:
+            # This triggers the "Allow notifications?" popup on the phone
+            page.run_task(page.client_storage.set_async, "notif_requested", True)
+
 
 
     def check_version():
@@ -273,6 +278,8 @@ def home(page: ft.Page):
 
     page.add(tabs)
     check_version()
+    request_notification_permission()
     fetch_data() # Initial load
     
+
 
