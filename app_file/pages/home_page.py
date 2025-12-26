@@ -8,10 +8,12 @@ import os
 # --- CONFIGURATION ---
 MESSAGES_URL = "https://raw.githubusercontent.com/Aissaouileith31/school_data3/refs/heads/main/messege.json"
 CRENAU_URL = "https://raw.githubusercontent.com/Aissaouileith31/school_data3/refs/heads/main/crenau.json"
+VERSION_URL = "https://raw.githubusercontent.com/Aissaouileith31/school_data3/refs/heads/main/version.txt"
 # For the user info, you can also fetch this from GitHub if you like
 
 
 def home(page: ft.Page):
+    version = "1.1"
     user_name = page.client_storage.get("username") or "User"
     user_id = page.client_storage.get("user_id") or "0000"
     page.title = "Archemede Dashboard"
@@ -30,6 +32,34 @@ def home(page: ft.Page):
 # Change these lines in your code:
     messages_list = ft.Column(spacing=10, scroll=ft.ScrollMode.ADAPTIVE, expand=True)
     crenau_list = ft.Column(spacing=10, scroll=ft.ScrollMode.ADAPTIVE, expand=True)
+
+
+
+    def check_version():
+        try:
+            # Fetch the version from GitHub
+            response = requests.get(VERSION_URL, timeout=5)
+            github_version = response.text.strip() # .strip() removes hidden spaces or new lines
+
+            if github_version != version:
+                # Show a warning if versions don't match
+                dlg = ft.AlertDialog(
+                    title=ft.Text("mise à jour disponible"),
+                    content=ft.Text("L'application a besoin d'une mise à jour."),
+                    alignment=ft.alignment.center,
+                    actions=[
+                    ft.TextButton("metre a jour", on_click=lambda e :page.launch_url("https://drive.google.com/file/d/1eU0tI4cjWbB6QCUI77dnt8RaeBd8_FRh/view?usp=drive_link")),
+                    ft.TextButton("Pas maintenant", on_click=lambda e: page.close(dlg)),
+                    ],
+                    on_dismiss=lambda e: print("Dialog dismissed!"),
+                    title_padding=ft.padding.all(25),
+                )
+                page.open(dlg)
+                page.update()
+        except Exception as e:
+            print(f"Version check failed: {e}")
+
+
     # --- DRAWER BUTTON FUNCTIONS ---
     
     def send_system_notify(title, msg):
@@ -78,14 +108,23 @@ def home(page: ft.Page):
             crenau_res = requests.get(f"{CRENAU_URL}?nocache={cache_buster}",headers=headers, timeout=5).json()
             crenau_list.controls.clear()
             for item in crenau_res:
+                count = item.get("nbr_cour")
+                if count <=0:
+                    my_colore="#b90202"
+                else:
+                    my_colore="white10"
+
                 if item.get("resiver_user") == user_name:
 
                     crenau_list.controls.append(
                         ft.Container(
                             content=ft.ListTile(title=ft.Text(f'crenau: {item['matier']} inscri le {item['date_de_iscription']}'), subtitle=ft.Text(f'jour du crenau: {item['jour']}\ntemp:\n  debu: {item['debu']}\n  fin: {item['fin']}\nnbr de cour rest: {item['nbr_cour']}\nexpire: {item['expire']}')),
-                            bgcolor="white10", border_radius=10
+                            bgcolor=my_colore, border_radius=10
                         )
                     )
+
+                    
+                        
         except:
             pass # Handle errors silently for this demo
         page.update()
@@ -212,7 +251,8 @@ def home(page: ft.Page):
                 icon=ft.Icons.LOGOUT, 
                 on_click=logout,
                 width=200
-            )
+            ),
+            ft.Text('version: 1.1')
         ], horizontal_alignment="center", spacing=10),
         padding=20
     )
@@ -232,5 +272,7 @@ def home(page: ft.Page):
     )
 
     page.add(tabs)
+    check_version()
     fetch_data() # Initial load
+    
 
