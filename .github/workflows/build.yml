@@ -1,4 +1,4 @@
-name: Android Build with Permissions
+name: Android Build with Notifications
 
 on:
   push:
@@ -16,15 +16,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+
+    - name: Setup Python ${{ env.PYTHON_VERSION }}
     - uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    - name: Install Deps
+
+    - name: Install Dependencies
       run: |
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
     - uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
+
+    - name: Setup Java JDK 21
     - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
@@ -32,10 +40,14 @@ jobs:
 
     - name: Flet Build APK
       run: |
-        flet build apk --no-interactive --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION --permissions POST_NOTIFICATIONS
+        flutter config --no-analytics
+        flet build apk --no-interactive --verbose \
+          --build-number=$BUILD_NUMBER \
+          --build-version=$BUILD_VERSION \
+          --android-permissions android.permission.POST_NOTIFICATIONS
 
-    - name: Upload APK
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: android-apk-with-notifications
+        name: Archemede-School-Android
         path: build/apk
